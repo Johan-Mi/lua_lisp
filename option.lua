@@ -27,6 +27,14 @@ function Option:map(func)
     end
 end
 
+function Option:and_then(func)
+    if self:is_some() then
+        return func(self._value)
+    else
+        return None
+    end
+end
+
 function Option:filter(predicate)
     if self:is_some() and predicate(self._value) then
         return self
@@ -47,4 +55,8 @@ function Option:ok_or(func)
     return self.map(Ok):or_else(function()
         return Err(default)
     end)
+end
+
+function Option:unwrap()
+    return self._value
 end
