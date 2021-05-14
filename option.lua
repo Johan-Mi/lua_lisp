@@ -1,4 +1,5 @@
 Option = {}
+Option.__index = Option
 
 require 'result'
 

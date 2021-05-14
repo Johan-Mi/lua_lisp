@@ -1,4 +1,8 @@
 require 'option'
+require 'types.value'
+require 'types.symbol'
+require 'types.cons'
+require 'types.quoted'
 
 local function parse_number(tokens, start)
     local num = tokens[start]
@@ -6,7 +10,7 @@ local function parse_number(tokens, start)
         return None
     end
 
-    num = tonumber(num.data)
+    num = tonumber(num.name)
     if num == nil then
         return None
     else
@@ -20,7 +24,7 @@ local function parse_symbol(tokens, start)
         return None
     end
 
-    local symbol = Symbol.parse(token.data)
+    local symbol = Symbol.parse(token.name)
     return symbol:map(function(s)
         return { data = s, start = start + 1 }
     end)
@@ -43,7 +47,7 @@ local parse_quote = parser_for_token_kind 'quote'
 
 local function parse_dot(tokens, start)
     local token = tokens[start]
-    if token == nil or token.kind ~= 'ident' or token.data ~= '.' then
+    if token == nil or token.kind ~= 'ident' or token.name ~= '.' then
         return None
     end
 
@@ -57,63 +61,59 @@ local function parse_quoted_expression(tokens, start)
         end):map(Quoted.new)
 end
 
-local function parse_cons(tokens, start)
-    start = parse_lparen(tokens, start):map(
-                function(parsed)
-            return parsed.start
-        end):unwrap()
+local function parse_cons_helper(tokens, start)
+    local parsed = parse_rparen(tokens, start):unwrap()
+    if parsed ~= nil then
+        return Some { data = Cons.new(), start = parsed.start }
+    end
+
+    local parsed = parse_expression(tokens, start):unwrap()
     if parsed == nil then
         return None
     end
+    start = parsed.start
+    local first_expr = parsed.data
 
-    local function parse_cons_helper(start)
-        local parsed = parse_rparen(tokens, start):unwrap()
-        if parsed ~= nil then
-            return Some { data = Cons.new(), start = parsed.start }
-        end
+    local parsed = parse_dot(tokens, start):unwrap()
+    if parsed ~= nil then
+        start = parsed.start
 
         local parsed = parse_expression(tokens, start):unwrap()
         if parsed == nil then
             return None
         end
         start = parsed.start
-        local first_expr = parsed.data
+        local last_expr = parsed.data
 
-        local parsed = parse_dot(tokens, start):unwrap()
-        if parsed ~= nil then
-            start = parsed.start
-
-            local parsed = parse_expression(tokens, start):unwrap()
-            if parsed == nil then
-                return None
-            end
-            start = parsed.start
-            local last_expr = parsed.data
-
-            local parsed = parse_rparen(tokens, start):unwrap()
-            if parsed == nil then
-                return None
-            end
-            start = parsed.start
-
-            return
-                Some { data = Cons.new(first_expr, last_expr), start = start }
-        end
-
-        local parsed = parse_cons_helper(start):unwrap()
+        local parsed = parse_rparen(tokens, start):unwrap()
         if parsed == nil then
             return None
         end
         start = parsed.start
-        local rest = parsed.data
 
-        return Some { data = Cons.new(first_expr, rest), start = start }
+        return Some { data = Cons.new(first_expr, last_expr), start = start }
     end
 
-    return parse_cons_helper(start)
+    local parsed = parse_cons_helper(tokens, start):unwrap()
+    if parsed == nil then
+        return None
+    end
+    start = parsed.start
+    local rest = parsed.data
+
+    return Some { data = Cons.new(first_expr, Value.new(rest)), start = start }
 end
 
-local function parse_expression(tokens, start)
+local function parse_cons(tokens, start)
+    local parsed = parse_lparen(tokens, start):unwrap()
+    if parsed == nil then
+        return None
+    end
+    start = parsed.start
+    return parse_cons_helper(tokens, start)
+end
+
+function parse_expression(tokens, start)
     for _, parser in pairs {
         parse_cons,
         parse_quoted_expression,
@@ -125,9 +125,15 @@ local function parse_expression(tokens, start)
             return Some { data = Value.new(parsed.data), start = parsed.start }
         end
     end
+
+    return None
 end
 
 function parse_expressions(tokens, start)
+    if start == nil then
+        start = 1
+    end
+
     local ret = {}
 
     while true do
@@ -142,6 +148,6 @@ function parse_expressions(tokens, start)
         end
 
         start = parsed.start
-        table.insert(ret, start.data)
+        table.insert(ret, parsed.data)
     end
 end

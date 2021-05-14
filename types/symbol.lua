@@ -16,7 +16,7 @@ local function is_valid_symbol(name)
     if name == '+' or name == '-' or name == '...' then
         return true
     else
-        if not is_initial(name.sub(1, 1)) then
+        if not is_initial(name:sub(1, 1)) then
             return false
         end
 

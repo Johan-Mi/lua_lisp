@@ -1,4 +1,5 @@
 Value = {}
+Value.__index = Value
 
 require 'option'
 require 'result'
