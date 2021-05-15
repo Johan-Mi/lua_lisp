@@ -1,11 +1,14 @@
-Token = {}
+Token = {
+    -- kind: string
+    -- name?: string
+}
 
-function Token.new(obj)
+function Token.new(obj) ---> Token
     setmetatable(obj, Token)
     return obj
 end
 
-function Token:__tostring()
+function Token:__tostring() ---> string
     if self.kind == 'ident' then
         return 'ident ' .. self.name
     else
@@ -13,7 +16,7 @@ function Token:__tostring()
     end
 end
 
-function lex(s)
+function lex(s) ---> { Token }
     local ret = {}
 
     local string_buffer = ''

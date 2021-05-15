@@ -1,18 +1,20 @@
-Symbol = {}
+Symbol = {
+    -- _name: string
+}
 
 require 'option'
 
-local function is_initial(c)
+local function is_initial(c) ---> boolean
     return
         ('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!$%&*/:<=>?^_~'):find(
             c) ~= nil
 end
 
-local function is_subsequent(c)
+local function is_subsequent(c) ---> boolean
     return is_initial(c) or ('0123456789+.@-'):find(c) ~= nil
 end
 
-local function is_valid_symbol(name)
+local function is_valid_symbol(name) ---> boolean
     if name == '+' or name == '-' or name == '...' then
         return true
     else
@@ -28,7 +30,7 @@ local function is_valid_symbol(name)
     end
 end
 
-function Symbol.parse(name)
+function Symbol.parse(name) ---> Option Symbol
     if is_valid_symbol(name) then
         self = { _name = name }
         setmetatable(self, Symbol)

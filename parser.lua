@@ -4,7 +4,7 @@ require 'types.symbol'
 require 'types.cons'
 require 'types.quoted'
 
-local function parse_number(tokens, start)
+local function parse_number(tokens, start) ---> Option { data: number, start: number }
     local num = tokens[start]
     if num == nil or num.kind ~= 'ident' then
         return None
@@ -18,7 +18,7 @@ local function parse_number(tokens, start)
     end
 end
 
-local function parse_symbol(tokens, start)
+local function parse_symbol(tokens, start) ---> Option { data: Symbol, start: number }
     local token = tokens[start]
     if token == nil or token.kind ~= 'ident' then
         return None
@@ -30,7 +30,7 @@ local function parse_symbol(tokens, start)
     end)
 end
 
-local function parser_for_token_kind(kind)
+local function parser_for_token_kind(kind) ---> function(tokens, start) -> Option { start: number }
     return function(tokens, start)
         local token = tokens[start]
         if token == nil or token.kind ~= kind then
@@ -45,7 +45,7 @@ local parse_lparen = parser_for_token_kind 'lparen'
 local parse_rparen = parser_for_token_kind 'rparen'
 local parse_quote = parser_for_token_kind 'quote'
 
-local function parse_dot(tokens, start)
+local function parse_dot(tokens, start) ---> Option { start: number }
     local token = tokens[start]
     if token == nil or token.kind ~= 'ident' or token.name ~= '.' then
         return None
@@ -54,14 +54,14 @@ local function parse_dot(tokens, start)
     return Some { start = start + 1 }
 end
 
-local function parse_quoted_expression(tokens, start)
+local function parse_quoted_expression(tokens, start) ---> Option { data: Quoted, start: number }
     return parse_quote(tokens, start):and_then(
                function(a)
             return parse_expression(tokens, a.start)
         end):map(Quoted.new)
 end
 
-local function parse_cons_helper(tokens, start)
+local function parse_cons_helper(tokens, start) ---> Option { data: Cons, start: number }
     local parsed = parse_rparen(tokens, start):unwrap()
     if parsed ~= nil then
         return Some { data = Cons.new(), start = parsed.start }
@@ -104,7 +104,7 @@ local function parse_cons_helper(tokens, start)
     return Some { data = Cons.new(first_expr, Value.new(rest)), start = start }
 end
 
-local function parse_cons(tokens, start)
+local function parse_cons(tokens, start) ---> Option { data: Cons, start: number }
     local parsed = parse_lparen(tokens, start):unwrap()
     if parsed == nil then
         return None
@@ -113,7 +113,7 @@ local function parse_cons(tokens, start)
     return parse_cons_helper(tokens, start)
 end
 
-function parse_expression(tokens, start)
+function parse_expression(tokens, start) ---> Option { data: Value, start: number }
     for _, parser in pairs {
         parse_cons,
         parse_quoted_expression,
@@ -129,7 +129,7 @@ function parse_expression(tokens, start)
     return None
 end
 
-function parse_expressions(tokens, start)
+function parse_expressions(tokens, start) ---> Option { Value }
     if start == nil then
         start = 1
     end

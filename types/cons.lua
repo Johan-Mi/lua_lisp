@@ -1,21 +1,24 @@
-Cons = {}
+Cons = {
+    -- _car?: Value
+    -- _cdr?: Value
+}
 Cons.__index = Cons
 
-function Cons.new(car, cdr)
+function Cons.new(car, cdr) ---> Cons
     self = { _car = car, _cdr = cdr }
     setmetatable(self, Cons)
     return self
 end
 
-function Cons:car()
+function Cons:car() ---> Value
     return self._car
 end
 
-function Cons:cdr()
+function Cons:cdr() ---> Value
     return self._cdr
 end
 
-function Cons:__tostring()
+function Cons:__tostring() ---> string
     function to_cons_string(obj)
         local cons = obj:as_cons():unwrap()
         if cons ~= nil then
