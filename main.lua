@@ -12,12 +12,12 @@ for _, token in pairs(lexed) do
     print(token)
 end
 
-local exprs = parse_expressions(lexed):unwrap()
+local exprs = parse_expressions(lexed)
 
 if exprs == nil then
     print 'Error: could not parse input'
 else
-    print('\nExpressions:')
+    print '\nExpressions:'
     for _, e in pairs(exprs) do
         print(e)
     end

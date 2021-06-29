@@ -3,7 +3,7 @@ Value = {
 }
 Value.__index = Value
 
-require 'option'
+local opt = require 'option'
 require 'result'
 require 'error'
 
@@ -21,20 +21,20 @@ function Value:is_cons() ---> boolean
     return getmetatable(self._value) == Cons
 end
 
-function Value:as_cons() ---> Option Cons
+function Value:as_cons() ---> Cons?
     if self:is_cons() then
-        return Some(self._value)
+        return self._value
     else
-        return None
+        return nil
     end
 end
 
 function Value:car() ---> Result Value Error
-    return self:as_cons():map(Cons.car):ok_or(
-               Error.new "tried to get `car` of non-cons value")
+    return opt.ok_or(opt.map(self:as_cons(), Cons.car),
+                     Error.new "tried to get `car` of non-cons value")
 end
 
 function Value:cdr()
-    return self:as_cons():map(Cons.cdr):ok_or(
-               Error.new "tried to get `cdr` of non-cons value")
+    return opt.ok_or(opt.map(self:as_cons(), Cons.cdr),
+                     Error.new "tried to get `cdr` of non-cons value")
 end

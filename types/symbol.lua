@@ -30,12 +30,12 @@ local function is_valid_symbol(name) ---> boolean
     end
 end
 
-function Symbol.parse(name) ---> Option Symbol
+function Symbol.parse(name) ---> Symbol?
     if is_valid_symbol(name) then
         self = { _name = name }
         setmetatable(self, Symbol)
-        return Some(self)
+        return self
     else
-        return None
+        return nil
     end
 end

@@ -20,7 +20,7 @@ end
 
 function Cons:__tostring() ---> string
     function to_cons_string(obj)
-        local cons = obj:as_cons():unwrap()
+        local cons = obj:as_cons()
         if cons ~= nil then
             if cons:car() == nil then
                 return ''

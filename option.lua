@@ -1,65 +1,35 @@
-Option = {
-    -- _value?: any
-}
-Option.__index = Option
+M = {}
 
 require 'result'
 
-None = {}
-setmetatable(None, Option)
-
-function Some(inner) ---> Option
-    self = { _value = inner }
-    setmetatable(self, Option)
-    return self
-end
-
-function Option:is_some() ---> boolean
-    return self._value ~= nil
-end
-
-function Option:is_none() ---> boolean
-    return self._value == nil
-end
-
-function Option:map(func) ---> Option
-    if self:is_some() then
-        return Some(func(self._value))
+function M.map(self, func)
+    if self == nil then
+        return nil
     else
-        return None
+        return func(self)
     end
 end
 
-function Option:and_then(func) ---> Option
-    if self:is_some() then
-        return func(self._value)
-    else
-        return None
-    end
-end
-
-function Option:filter(predicate) ---> Option
-    if self:is_some() and predicate(self._value) then
+function M.filter(self, predicate)
+    if self ~= nil and predicate(self) then
         return self
     else
-        return None
+        return nil
     end
 end
 
-function Option:or_else(func) ---> Option
-    if self:is_some() then
-        return self
-    else
+function M.or_else(self, func)
+    if self == nil then
         return func()
+    else
+        return self
     end
 end
 
-function Option:ok_or(func) ---> Option
-    return self.map(Ok):or_else(function()
+function M.ok_or(self, default)
+    return M.map(self, Ok):or_else(function()
         return Err(default)
     end)
 end
 
-function Option:unwrap() ---> any
-    return self._value
-end
+return M
